@@ -41,6 +41,7 @@ export default function Home() {
     };
 
     connectWallet();
+    console.log("Wallet connected");
   }, []);
 
   const startGame = async (registeredPlayers: { name: string; money: number }[]) => {
