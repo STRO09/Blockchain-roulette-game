@@ -44,6 +44,24 @@ export default function Home() {
     console.log("Wallet connected");
   }, []);
 
+
+  useEffect(() => {
+    const resetGameOnChain = async () => {
+      if (!gameStarted && contract) {
+        try {
+          const tx = await contract.resetGame();
+          await tx.wait();
+          console.log("Game reset successfully on the blockchain.");
+        } catch (error) {
+          console.error("Error resetting game:", error);
+        }
+      }
+    };
+
+    resetGameOnChain();
+  }, [gameStarted, contract]);
+
+  
   const startGame = async (registeredPlayers: { name: string; money: number }[]) => {
 
     const formattedPlayers: Player[] = registeredPlayers.map((player, index) => ({
@@ -80,7 +98,7 @@ export default function Home() {
     <main className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-slate-900 to-slate-800 text-white">
       <h1 className="text-4xl font-bold mb-8 text-center">Wheel Betting Game</h1>
 
-      {!gameStarted ? <GameSetup onStartGame={startGame} /> : <GameBoard initialPlayers={players} />}
+      {!gameStarted ? <GameSetup onStartGame={startGame} /> : <GameBoard initialPlayers={players} onRestart={() => setGameStarted(false)}  />}
     </main>
   );
 }

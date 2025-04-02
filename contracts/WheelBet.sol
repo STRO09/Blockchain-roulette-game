@@ -15,6 +15,7 @@ contract WheelBet {
     event GameWon(string indexed winner, uint winnings);
     event PlayerOut(string indexed player);
     event GameEnded(string indexed winner);
+    event GameReset();
 
     function register(string memory _name, uint _initialBalance) public {
         require(bytes(players[_name].name).length == 0, "Player already registered");
@@ -59,5 +60,12 @@ contract WheelBet {
         }
 
         return false;
+    }
+        function resetGame() public {
+        for (uint i = 0; i < playerList.length; i++) {
+            delete players[playerList[i]];
+        }
+        delete playerList;
+        emit GameReset();
     }
 }

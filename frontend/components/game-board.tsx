@@ -12,10 +12,12 @@ import { getContract } from "../utils/ethers";
 import { ethers } from "ethers";
 
 interface GameBoardProps {
-  initialPlayers: Player[];
+  initialPlayers: Player[],
+  onRestart: () => void;
+
 }
 
-export function GameBoard({ initialPlayers }: GameBoardProps) {
+export function GameBoard({ initialPlayers,  onRestart }: GameBoardProps) {
   const [players, setPlayers] = useState<Player[]>(
     initialPlayers.map((player) => ({
       ...player,
@@ -354,43 +356,7 @@ const moveToNextPlayer = () => {
   };
 
   // Reset the game
-  const resetGame = async () => {
-    try {
-      if (!window.ethereum) throw new Error("MetaMask not detected");
-
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = getContract(signer);
-
-      for (const player of initialPlayers) {
-        const tx = await contract.register(player.name, player.money);
-        await tx.wait();
-      }
-    } catch (error) {
-      console.error("Error resetting game:", error);
-      setMessage("Failed to reset game. Check console for errors.");
-      return;
-    }
-    setPlayers(
-      initialPlayers.map((player) => ({
-        ...player,
-        number: null,
-        bet: 0,
-        isActive: true,
-        hasQuit: false,
-      }))
-    );
-    setCurrentPlayerIndex(0);
-    setGamePhase("betting");
-    setSpinResult(null);
-    setRoundWinner(null);
-    setTotalPot(0);
-    setGameOver(false);
-    setRoundWinner(null);
-    setBetInput("");
-    setNumberInput("");
-    setMessage("Place your bets!");
-  };
+  
 
   return (
     <div className="w-full max-w-5xl">
@@ -499,7 +465,7 @@ const moveToNextPlayer = () => {
 
       {/* Game over modal */}
       {gameOver && roundWinner && (
-        <GameOverModal winner={roundWinner} onRestart={resetGame} />
+        <GameOverModal winner={roundWinner} onRestart={onRestart} />
       )}
     </div>
   );
