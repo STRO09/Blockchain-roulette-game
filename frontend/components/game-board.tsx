@@ -182,65 +182,68 @@ export function GameBoard({ initialPlayers }: GameBoardProps) {
 
   // Handle player quit
   // Handle player quit
-  const handleQuit = async () => {
+const handleQuit = async () => {
+    const updatedPlayers = players.map((player, index) =>
+        index === currentPlayerIndex
+            ? { ...player, hasQuit: true, isActive: false }
+            : player
+    );
+
+    setPlayers(updatedPlayers);
+    setMessage(`${updatedPlayers[currentPlayerIndex].name} has quit the game.`);
+
+    // Wait for the transaction to complete before moving to the next player
     try {
-      if (!window.ethereum) throw new Error("MetaMask not detected");
+        if (!window.ethereum) throw new Error("MetaMask not detected");
 
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = getContract(signer);
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = getContract(signer);
 
-      const tx = await contract.removePlayer(signer.address);
-      await tx.wait(); // Wait for transaction confirmation
+        const tx = await contract.removePlayer(updatedPlayers[currentPlayerIndex].name);
+        await tx.wait(); // Wait for transaction confirmation
 
-      const updatedPlayers = [...players];
-      updatedPlayers[currentPlayerIndex] = {
-        ...currentPlayer,
-        hasQuit: true,
-        isActive: false,
-      };
-      setPlayers(updatedPlayers);
-
-      setMessage(`${currentPlayer.name} has quit the game.`);
-
-      // Move to next player
-      moveToNextPlayer();
-    } catch (error: unknown) {
-      console.error("Quit action failed:", error);
-      if (error instanceof Error) {
-        setMessage(`Failed to quit: ${error.message}`);
-      } else {
-        setMessage(`Failed to quit: unknown error`);
-      }
+        moveToNextPlayer();
+    } catch (error) {
+        console.error("Error during quit transaction:", error);
+        setMessage("Failed to process quit. Check console for errors.");
     }
   };
+  
   // Move to next active player
-  const moveToNextPlayer = () => {
+const moveToNextPlayer = () => {
     let nextIndex = (currentPlayerIndex + 1) % players.length;
     const startIndex = currentPlayerIndex;
-    let allPlayersHaveBet = true;
+    let allActivePlayersHaveBet = true;
+
+    console.log("Current Player Index:", currentPlayerIndex);
+    console.log("Players State:", players);
 
     // Find next active player
     while (nextIndex !== startIndex) {
-      if (
-        players[nextIndex].isActive &&
-        !players[nextIndex].hasQuit &&
-        players[nextIndex].bet === 0
-      ) {
-        // Found an active player who hasn't bet yet
-        allPlayersHaveBet = false;
-        setCurrentPlayerIndex(nextIndex);
-        setBetInput("");
-        setNumberInput("");
-        setMessage(`${players[nextIndex].name}'s turn to bet`);
-        return;
-      }
-      nextIndex = (nextIndex + 1) % players.length;
+        if (
+            players[nextIndex].isActive &&
+            !players[nextIndex].hasQuit &&
+            players[nextIndex].bet === 0
+        ) {
+            // Found an active player who hasn't bet yet
+            allActivePlayersHaveBet = false;
+            setCurrentPlayerIndex(nextIndex);
+            setBetInput("");
+            setNumberInput("");
+            setMessage(`${players[nextIndex].name}'s turn to bet`);
+            console.log("Moving to next player:", players[nextIndex].name);
+            return;
+        }
+        nextIndex = (nextIndex + 1) % players.length;
     }
 
     // If we've gone through all players and they've all bet, start spinning
-    if (allPlayersHaveBet) {
-      startSpinning();
+    if (allActivePlayersHaveBet) {
+        console.log("All active players have bet. Starting to spin.");
+        startSpinning();
+    } else {
+        console.log("No active players left to bet.");
     }
   };
 
