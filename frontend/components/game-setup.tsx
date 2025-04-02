@@ -117,7 +117,7 @@ export function GameSetup({ onStartGame }: GameSetupProps) {
           </div>
         ))}
 
-        <Button variant="outline" className="w-full" onClick={addPlayer} disabled={players.length >= 4}>
+        <Button variant="secondary" className="w-full" onClick={addPlayer} disabled={players.length >= 4}>
           <Plus className="mr-2 h-4 w-4" /> Add Player
         </Button>
 

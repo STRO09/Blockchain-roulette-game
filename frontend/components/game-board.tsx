@@ -45,7 +45,7 @@ export function GameBoard({ initialPlayers }: GameBoardProps) {
   useEffect(() => {
     const activePlayers = players.filter((p) => p.isActive && !p.hasQuit);
 
-    if (activePlayers.length === 1) {
+    if (activePlayers.length === 1 && !gameOver) {
       setGameOver(true);
       console.log(gameOver);
       setRoundWinner(activePlayers[0]);
@@ -458,7 +458,7 @@ const moveToNextPlayer = () => {
                   </Button>
                   <Button
                     onClick={handleQuit}
-                    variant="outline"
+                    variant="destructive"
                     className="flex-1"
                   >
                     Quit Game
