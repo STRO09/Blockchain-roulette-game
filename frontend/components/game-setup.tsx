@@ -26,7 +26,7 @@ export function GameSetup({ onStartGame }: GameSetupProps) {
       return
     }
 
-    setPlayers([...players, { id: Date.now(), name: "", money: 1000, bet: 0, isActive: true, hasQuit: false , number: null }])
+    setPlayers([...players, { id: players.length + 1, name: "", money: 1000, bet: 0, isActive: true, hasQuit: false , number: null }])
     setError("")
   }
 

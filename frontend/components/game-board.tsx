@@ -51,15 +51,10 @@ export function GameBoard({ initialPlayers,  onRestart }: GameBoardProps) {
       setGameOver(true);
       console.log(gameOver);
       setRoundWinner(activePlayers[0]);
-    } else if (players.filter((p) => !p.hasQuit).length <= 1) {
-      setGameOver(true);
-      console.log(gameOver);
-      setRoundWinner(players.find((p) => !p.hasQuit) ?? null);
     }
-  }, [players]);
 
-  useEffect(() => {
-    console.log("Players state updated:", players);
+
+    console.log("Player's state updated: ",players);
   }, [players]);
 
   useEffect(() => {
@@ -92,6 +87,18 @@ export function GameBoard({ initialPlayers,  onRestart }: GameBoardProps) {
         )
       );
     }
+  }, [roundWinner]);
+
+  useEffect(() => {
+    if(players.some((p)=>p.money <= 0)){
+      setPlayers(prev =>
+        prev.map(p =>
+          p.money <= 0
+            ? { ...p, isActive: false, hasQuit: false, bet: 0, number: null }
+            : p
+        )
+      );
+      }
   }, [roundWinner]);
 
   useEffect(() => {
@@ -314,23 +321,27 @@ const moveToNextPlayer = () => {
 
   // Start a new betting round
   const startNewRound = () => {
-    if (players.length < 2) {
-      setMessage("At least 2 players are needed to continue.");
+    const activePlayers = players.filter((p) => p.isActive || !p.hasQuit);
+    if (activePlayers.length < 2) {
+      setGameOver(true);
+      setMessage("Game Over! Not enough players left to continue.");
       return;
     }
 
-    const activePlayers = players.filter((p) => p.isActive && !p.hasQuit);
+
     if (activePlayers.length === 0) {
       setGameOver(true);
       setMessage("Game Over! No active players left.");
       return;
     }
 
-    // 🔴 Check if any active player has no money
-    if (activePlayers.some((p) => p.money <= 0)) {
+    const moneyPlayers = activePlayers.filter((p) => p.money > 0);
+
+    if (moneyPlayers.length === 1) {
       setGameOver(true);
-      setMessage("Game Over! A player ran out of money.");
-      console.log("💀 Game Over! One or more players are broke.");
+      const winner = moneyPlayers[0];
+      setMessage(`🎉 Game Over! ${winner.name} wins with ₹${winner.money}!`);
+      console.log(`🏆 Winner: ${winner.name}`);
       return;
     }
 
@@ -345,6 +356,7 @@ const moveToNextPlayer = () => {
       }))
     );
 
+    
     setRoundWinner(null); // Reset round winner properly
     setSpinResult(null); // Reset spin result
     setTotalPot(0); // Reset total pot for the new round
